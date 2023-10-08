@@ -15,13 +15,13 @@
 
 // Insert your network credentials
 #define WIFI_SSID "Mi 9T Pro"
-#define WIFI_PASSWORD "ThisIsaTest"
+#define WIFI_PASSWORD "Aviones31"
 
 // Insert Firebase project API Key
-#define API_KEY "AIzaSyBbuUlvoFJ3S6HQrB7NT3GtvKE4IRBcdkw"
+#define API_KEY "AIzaSyAJURRTV8547L1tU-dvIJI0dEmKEiEexi4"
 
 // Insert RTDB URLefine the RTDB URL */
-#define DATABASE_URL "https://esp-leds-856d0-default-rtdb.firebaseio.com/" 
+#define DATABASE_URL "https://nasa-hackaton-3568e-default-rtdb.firebaseio.com/" 
 
 //Define Firebase Data object
 FirebaseData fbdo;
@@ -33,11 +33,11 @@ unsigned long sendDataPrevMillis = 0;
 float floatValue;
 bool signupOK = false;
 //Function variables
-int counter;
+int counter=0;
 bool state;
 //Ultrasonic Sensor setup
-const int Trigger = 2;   //Pin digital 2 para el Trigger del sensor (Input pin)
-const int Echo = 4;   //Pin digital 3 para el Echo del sensor (Output pin)
+const int Trigger = 32;   //Pin digital 2 para el Trigger del sensor (Input pin)
+const int Echo = 33;   //Pin digital 3 para el Echo del sensor (Output pin)
 int t; //timepo que demora en llegar el eco
 int distance; //distancia en centimetros
 //set Counter function
@@ -45,9 +45,9 @@ void setCont(int counter){
   Firebase.RTDB.setInt(&fbdo, "Counter", counter);
 }
 //get state function
-bool getStates(){
-  Firebase.RTDB.setBool(&fbdo, "State", state);
-  state = fbdo.boolData();
+int getStates(){
+  Firebase.RTDB.getInt(&fbdo, "State");
+  state = fbdo.intData();
   return state;
 }
 //get distance
@@ -98,18 +98,22 @@ void setup(){
   
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
+  setCont(0);
 }
 
 void loop(){
   int dist = getDistance();
   if (Firebase.ready() && signupOK && dist <= 100){
     state = getStates();
-    counter++;
-    setCont(counter);
-    if(state == false){
+    if((millis() - sendDataPrevMillis > 10000 || sendDataPrevMillis == 0)){
+      sendDataPrevMillis = millis();
+      counter++;
+      setCont(counter);
+    }
+    if(state == 0){
       digitalWrite(26, HIGH);
       digitalWrite(25, LOW);
-    }else{
+    }else if(state == 1){
       digitalWrite(26, LOW);
       digitalWrite(25, HIGH);
     }
@@ -117,4 +121,5 @@ void loop(){
     digitalWrite(26, LOW);
     digitalWrite(25, LOW);
   }
+  delay(50);
 }
